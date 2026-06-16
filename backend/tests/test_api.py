@@ -1,16 +1,66 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
+import shutil
+from pathlib import Path
+from uuid import uuid4
+
 import pandas as pd
 from fastapi.testclient import TestClient
 
 from backend.app.main import app
 from backend.app.services.akshare_service import MarketDataset, MarketOverviewSnapshot, AkshareDataService
+from backend.app.services.cache_service import JsonCacheService
 from backend.app.models.schemas import MarketSignalResponse
 from backend.app.routes import v1_screening
 from backend.app.services.screener_service import ScreenerService
 
 client = TestClient(app)
+
+
+def _cache_test_dir() -> Path:
+    path = Path(__file__).resolve().parent / ".tmp_cache_tests" / uuid4().hex
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def test_json_cache_service_deletes_cache_older_than_retention(monkeypatch) -> None:
+    cache_dir = _cache_test_dir()
+    old_date = (datetime.now().date() - timedelta(days=31)).strftime("%Y%m%d")
+    recent_date = (datetime.now().date() - timedelta(days=3)).strftime("%Y%m%d")
+    old_path = cache_dir / f"resp_market_signal_{old_date}.json"
+    recent_path = cache_dir / f"resp_market_signal_{recent_date}.json"
+    try:
+        old_path.write_text("{}", encoding="utf-8")
+        recent_path.write_text("{}", encoding="utf-8")
+
+        service = JsonCacheService(cache_dir=cache_dir, retention_days=0)
+        deleted_files: list[str] = []
+
+        def fake_unlink(path: Path, missing_ok: bool = False) -> None:
+            deleted_files.append(path.name)
+
+        monkeypatch.setattr(Path, "unlink", fake_unlink)
+        service.retention_days = 30
+
+        assert service.cleanup_expired() == 1
+        assert deleted_files == [old_path.name]
+    finally:
+        shutil.rmtree(cache_dir, ignore_errors=True)
+
+
+def test_json_cache_service_retention_can_be_disabled() -> None:
+    cache_dir = _cache_test_dir()
+    old_date = (datetime.now().date() - timedelta(days=365)).strftime("%Y%m%d")
+    old_path = cache_dir / f"limit_up_pool_{old_date}.json"
+    try:
+        old_path.write_text("{}", encoding="utf-8")
+
+        JsonCacheService(cache_dir=cache_dir, retention_days=0)
+
+        assert old_path.exists()
+    finally:
+        shutil.rmtree(cache_dir, ignore_errors=True)
 
 
 def test_health() -> None:

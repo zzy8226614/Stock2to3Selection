@@ -131,10 +131,38 @@ sudo apt install -y python3-venv
 python3 -m venv .venv
 ```
 
-## 6. 临时启动验证
+## 6. 缓存保留策略
+
+后端缓存目录：
+
+```text
+backend/app/data/cache/
+```
+
+服务启动后会自动清理过期缓存，默认只保留最近 30 天。清理规则：
+
+1. 文件名里带 `YYYYMMDD` 日期的缓存，按文件名中的交易日期判断是否过期。
+2. 文件名里没有日期的缓存，按文件修改时间判断是否过期。
+3. `STOCK_CACHE_RETENTION_DAYS=0` 表示关闭自动清理。
+
+如果只想保留最近 30 天，不需要额外设置，默认就是：
 
 ```bash
-cd ~/apps/Stock2to3Selection
+export STOCK_CACHE_RETENTION_DAYS=30
+```
+
+临时启动时可以这样指定：
+
+```bash
+cd /opt/apps/Stock2to3Selection
+source .venv/bin/activate
+STOCK_CACHE_RETENTION_DAYS=30 python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8080
+```
+
+## 7. 临时启动验证
+
+```bash
+cd /opt/apps/Stock2to3Selection
 source .venv/bin/activate
 python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8080
 ```
@@ -154,7 +182,7 @@ curl http://47.107.125.248:8080/health
 curl http://47.107.125.248:8080/api/v1/health
 ```
 
-## 7. 配置 systemd 常驻服务
+## 8. 配置 systemd 常驻服务
 
 创建服务文件：
 
@@ -173,6 +201,7 @@ After=network.target
 User=admin
 WorkingDirectory=/opt/apps/Stock2to3Selection
 Environment="PATH=/opt/apps/Stock2to3Selection/.venv/bin"
+Environment="STOCK_CACHE_RETENTION_DAYS=30"
 ExecStart=/opt/apps/Stock2to3Selection/.venv/bin/python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8080
 Restart=always
 RestartSec=5
@@ -195,7 +224,7 @@ sudo systemctl start stock2to3
 sudo systemctl status stock2to3
 ```
 
-## 8. 接口预热
+## 9. 接口预热
 
 部署后建议预热三个核心接口：
 
@@ -213,7 +242,7 @@ curl -X POST http://127.0.0.1:8080/api/v1/screen/board-top10-limit-up \
   -d '{"trade_date":null,"use_demo_on_failure":true,"force_refresh":false}'
 ```
 
-## 9. 日常更新
+## 10. 日常更新
 
 ```bash
 cd ~/apps/Stock2to3Selection
@@ -230,7 +259,7 @@ sudo systemctl status stock2to3
 sudo journalctl -u stock2to3 -f
 ```
 
-## 10. 常见问题
+## 11. 常见问题
 
 公网访问失败时依次检查：
 
@@ -285,7 +314,7 @@ sudo journalctl -u stock2to3 --since "2 hours ago" --no-pager
 dmesg -T | grep -i -E "killed process|out of memory|oom"
 ```
 
-## 11. 验收清单
+## 12. 验收清单
 
 部署完成后至少确认：
 

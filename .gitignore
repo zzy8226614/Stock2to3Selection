@@ -1,6 +1,8 @@
 .venv/
 .pytest_cache/
 pytest-cache-files-*/
+.pytest-basetemp/
+backend/tests/.tmp_cache_tests/
 __pycache__/
 *.pyc
 *.pyo

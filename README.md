@@ -49,6 +49,16 @@ Legacy 兼容接口：
 
 - `GET /debug/upstream-check?timeout_seconds=12`
 
+## 服务端缓存
+
+后端缓存位于 `backend/app/data/cache/`，默认自动保留最近 30 天。可通过环境变量调整：
+
+```bash
+STOCK_CACHE_RETENTION_DAYS=30
+```
+
+设置为 `0` 可关闭自动清理。
+
 ## 测试
 
 ```powershell
