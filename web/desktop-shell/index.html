@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>二进三选股系统</title>
+  <link rel="stylesheet" href="./src/styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="app-header">
+      <div>
+        <h1>二进三选股系统</h1>
+        <p class="subtitle">收盘后选股版</p>
+      </div>
+      <div class="header-status">
+        <span class="pill" id="hostState">未连接</span>
+        <span class="pill" id="requestState">等待请求</span>
+      </div>
+    </header>
+
+    <div class="page-wrap">
+      <section class="panel config-panel">
+        <div class="config-header">
+          <h2 class="config-title">连接</h2>
+          <div class="actions compact config-actions">
+            <button type="button" id="saveConfig">保存配置</button>
+            <button type="button" id="pingHost">测试连接</button>
+          </div>
+        </div>
+        <div class="fields config-fields">
+          <label>
+            后端地址
+            <input id="baseUrl" value="http://47.107.125.248:8080/" />
+          </label>
+          <label>
+            交易日（可选）
+            <input id="tradeDate" placeholder="YYYY-MM-DD 或 YYYYMMDD" />
+          </label>
+        </div>
+      </section>
+
+      <div class="layout">
+        <section class="content">
+          <section class="panel view active panel--home" id="homeView">
+            <h2 class="feature-title">功能</h2>
+            <div class="action-cards">
+              <button type="button" class="action-card" data-screen="market-signal">
+                <span class="action-title">情绪信号</span>
+                <span class="action-desc">大盘、成交额、情绪与仓位参考</span>
+              </button>
+              <button type="button" class="action-card" data-screen="second-board-analysis">
+                <span class="action-title">二板解析</span>
+                <span class="action-desc">当日二板股按板块排名解析</span>
+              </button>
+              <button type="button" class="action-card" data-screen="board-top10-limit-up">
+                <span class="action-title">板块个股排名</span>
+                <span class="action-desc">板块前10中全部涨停个股</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="panel view" id="resultView">
+            <div class="view-header">
+              <div>
+                <h2 id="resultTitle">结果页</h2>
+                <p id="resultSubtitle">等待请求</p>
+              </div>
+              <div class="actions compact">
+                <button type="button" id="backHome">返回</button>
+                <button type="button" id="refreshCurrent">刷新</button>
+              </div>
+            </div>
+            <div class="status-strip" id="statusStrip"></div>
+            <div id="resultContent" class="result-content">
+              <div class="empty-state">暂无结果</div>
+            </div>
+          </section>
+        </section>
+
+        <aside class="sidebar">
+          <section class="panel">
+            <h2>请求信息</h2>
+            <div class="diag-grid">
+              <div class="diag-card">
+                <span class="diag-label">最近耗时</span>
+                <strong id="metricElapsed">--</strong>
+              </div>
+              <div class="diag-card">
+                <span class="diag-label">缓存命中</span>
+                <strong id="metricCache">--</strong>
+              </div>
+              <div class="diag-card">
+                <span class="diag-label">数据来源</span>
+                <strong id="metricSource">--</strong>
+              </div>
+              <div class="diag-card">
+                <span class="diag-label">降级状态</span>
+                <strong id="metricDegraded">--</strong>
+              </div>
+            </div>
+            <h3>最近请求</h3>
+            <div class="history-list" id="requestHistory"></div>
+          </section>
+
+          <section class="panel">
+            <h2>运行日志</h2>
+            <div class="history-list log-list" id="hostLog"></div>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <script src="./src/bridge.js"></script>
+  <script src="./src/app.js"></script>
+</body>
+</html>
