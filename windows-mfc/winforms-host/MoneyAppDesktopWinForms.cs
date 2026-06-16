@@ -108,7 +108,7 @@ namespace MoneyAppDesktopWinForms
                 }
             }
 
-            return "http://47.107.125.248:8080/desktop-shell/";
+            return "http://47.107.125.248:8081/desktop-shell/";
         }
     }
 

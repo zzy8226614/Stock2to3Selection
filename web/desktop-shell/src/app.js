@@ -46,7 +46,7 @@
     if (window.location && /^https?:/i.test(window.location.protocol)) {
       return normalizeBaseUrl(window.location.origin);
     }
-    return "http://47.107.125.248:8080/";
+    return "http://47.107.125.248:8081/";
   }
 
   function escapeHtml(value) {

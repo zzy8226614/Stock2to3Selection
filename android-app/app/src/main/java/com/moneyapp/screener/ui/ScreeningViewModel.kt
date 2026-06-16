@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class UiState(
-    val baseUrl: String = "http://47.107.125.248:8080/",
+    val baseUrl: String = "http://47.107.125.248:8081/",
     val tradeDate: String = defaultTradeDate(),
     val isLoading: Boolean = false,
     val errorMessage: String? = null,

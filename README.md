@@ -21,14 +21,14 @@ powershell -ExecutionPolicy Bypass -File .\backend\run_server.ps1
 
 ```powershell
 python -m pip install -r backend\requirements.txt
-python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8080
+python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8081
 ```
 
 健康检查：
 
 ```text
-http://127.0.0.1:8080/health
-http://127.0.0.1:8080/api/v1/health
+http://127.0.0.1:8081/health
+http://127.0.0.1:8081/api/v1/health
 ```
 
 ## 核心接口

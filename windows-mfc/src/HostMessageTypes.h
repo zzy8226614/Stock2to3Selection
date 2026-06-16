@@ -13,7 +13,7 @@ enum class IncomingMessageKind {
 };
 
 struct HostConfig {
-    std::wstring baseUrl = L"http://47.107.125.248:8080/";
+    std::wstring baseUrl = L"http://47.107.125.248:8081/";
     std::wstring clientType = L"windows-mfc";
 };
 

@@ -5,4 +5,4 @@ if (-not (Test-Path $python)) {
     $python = "python"
 }
 
-& $python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8080
+& $python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8081

@@ -112,7 +112,7 @@ private fun HomePage(
                 onValueChange = onBaseUrlChanged,
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("后端地址") },
-                supportingText = { Text("模拟器可用 http://10.0.2.2:8080/，真机请改成电脑局域网 IP 或阿里云地址。") },
+                supportingText = { Text("模拟器可用 http://10.0.2.2:8081/，真机请改成电脑局域网 IP 或阿里云地址。") },
                 singleLine = true,
             )
             OutlinedTextField(

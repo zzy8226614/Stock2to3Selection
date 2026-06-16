@@ -11,7 +11,7 @@ https://github.com/zzy8226614/Stock2to3Selection.git
 默认对外服务地址：
 
 ```text
-http://47.107.125.248:8080/
+http://47.107.125.248:8081/
 ```
 
 ## 1. 服务器要求
@@ -21,7 +21,7 @@ http://47.107.125.248:8080/
 | 系统 | Ubuntu 22.04 LTS |
 | Python | 3.10 至 3.12 |
 | 内存 | 2 GB 起，推荐 4 GB |
-| 端口 | `TCP 8080` |
+| 端口 | `TCP 8081` |
 | 进程托管 | `systemd` |
 
 ## 2. 安全组和防火墙
@@ -31,13 +31,13 @@ http://47.107.125.248:8080/
 | 协议 | 端口 | 来源 | 用途 |
 | :--- | :--- | :--- | :--- |
 | TCP | 22 | 你的公网 IP | SSH 登录 |
-| TCP | 8080 | `0.0.0.0/0` | FastAPI 后端访问 |
+| TCP | 8081 | `0.0.0.0/0` | FastAPI 后端访问 |
 
 如果服务器启用了 `ufw`：
 
 ```bash
 sudo ufw allow 22/tcp
-sudo ufw allow 8080/tcp
+sudo ufw allow 8081/tcp
 sudo ufw status
 ```
 
@@ -156,7 +156,7 @@ export STOCK_CACHE_RETENTION_DAYS=30
 ```bash
 cd /opt/apps/Stock2to3Selection
 source .venv/bin/activate
-STOCK_CACHE_RETENTION_DAYS=30 python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8080
+STOCK_CACHE_RETENTION_DAYS=30 python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8081
 ```
 
 ## 7. 临时启动验证
@@ -164,22 +164,22 @@ STOCK_CACHE_RETENTION_DAYS=30 python -m uvicorn backend.app.main:app --host 0.0.
 ```bash
 cd /opt/apps/Stock2to3Selection
 source .venv/bin/activate
-python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8080
+python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8081
 ```
 
 另开一个 SSH 窗口检查：
 
 ```bash
-curl http://127.0.0.1:8080/health
-curl http://127.0.0.1:8080/api/v1/health
-curl "http://127.0.0.1:8080/debug/upstream-check?timeout_seconds=12"
+curl http://127.0.0.1:8081/health
+curl http://127.0.0.1:8081/api/v1/health
+curl "http://127.0.0.1:8081/debug/upstream-check?timeout_seconds=12"
 ```
 
 公网检查：
 
 ```bash
-curl http://47.107.125.248:8080/health
-curl http://47.107.125.248:8080/api/v1/health
+curl http://47.107.125.248:8081/health
+curl http://47.107.125.248:8081/api/v1/health
 ```
 
 ## 8. 配置 systemd 常驻服务
@@ -202,7 +202,7 @@ User=admin
 WorkingDirectory=/opt/apps/Stock2to3Selection
 Environment="PATH=/opt/apps/Stock2to3Selection/.venv/bin"
 Environment="STOCK_CACHE_RETENTION_DAYS=30"
-ExecStart=/opt/apps/Stock2to3Selection/.venv/bin/python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8080
+ExecStart=/opt/apps/Stock2to3Selection/.venv/bin/python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8081
 Restart=always
 RestartSec=5
 TimeoutStopSec=20
@@ -229,15 +229,15 @@ sudo systemctl status stock2to3
 部署后建议预热三个核心接口：
 
 ```bash
-curl -X POST http://127.0.0.1:8080/api/v1/screen/market-signal \
+curl -X POST http://127.0.0.1:8081/api/v1/screen/market-signal \
   -H "Content-Type: application/json" \
   -d '{"trade_date":null,"use_demo_on_failure":true,"force_refresh":false}'
 
-curl -X POST http://127.0.0.1:8080/api/v1/screen/second-board-analysis \
+curl -X POST http://127.0.0.1:8081/api/v1/screen/second-board-analysis \
   -H "Content-Type: application/json" \
   -d '{"trade_date":null,"use_demo_on_failure":true,"force_refresh":false}'
 
-curl -X POST http://127.0.0.1:8080/api/v1/screen/board-top10-limit-up \
+curl -X POST http://127.0.0.1:8081/api/v1/screen/board-top10-limit-up \
   -H "Content-Type: application/json" \
   -d '{"trade_date":null,"use_demo_on_failure":true,"force_refresh":false}'
 ```
@@ -265,8 +265,8 @@ sudo journalctl -u stock2to3 -f
 
 ```bash
 sudo systemctl status stock2to3
-curl http://127.0.0.1:8080/health
-sudo ss -lntp | grep 8080
+curl http://127.0.0.1:8081/health
+sudo ss -lntp | grep 8081
 ```
 
 如果本机正常但公网失败，优先检查阿里云安全组和服务器防火墙。
@@ -274,7 +274,7 @@ sudo ss -lntp | grep 8080
 上游行情不稳定时检查：
 
 ```bash
-curl "http://127.0.0.1:8080/debug/upstream-check?timeout_seconds=12"
+curl "http://127.0.0.1:8081/debug/upstream-check?timeout_seconds=12"
 ```
 
 系统会优先使用 Akshare，必要时使用本地缓存和腾讯行情后备源。`runtime_env` 会清理失效的本机代理环境变量，避免服务因为错误代理无法访问上游。
@@ -319,9 +319,9 @@ dmesg -T | grep -i -E "killed process|out of memory|oom"
 部署完成后至少确认：
 
 ```bash
-curl http://47.107.125.248:8080/health
-curl http://47.107.125.248:8080/api/v1/health
-curl -X POST http://47.107.125.248:8080/api/v1/screen/second-board-analysis \
+curl http://47.107.125.248:8081/health
+curl http://47.107.125.248:8081/api/v1/health
+curl -X POST http://47.107.125.248:8081/api/v1/screen/second-board-analysis \
   -H "Content-Type: application/json" \
   -d '{"trade_date":null,"use_demo_on_failure":true,"force_refresh":false}'
 ```

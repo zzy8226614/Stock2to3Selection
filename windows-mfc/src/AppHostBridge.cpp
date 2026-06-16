@@ -97,7 +97,7 @@ std::optional<IncomingWebMessage> AppHostBridge::ParseIncomingMessage(const std:
 
     if (*type == L"host.config.save") {
         message.kind = IncomingMessageKind::ConfigSave;
-        message.config.baseUrl = ExtractStringField(rawJson, L"baseUrl").value_or(L"http://47.107.125.248:8080/");
+        message.config.baseUrl = ExtractStringField(rawJson, L"baseUrl").value_or(L"http://47.107.125.248:8081/");
         message.config.clientType = ExtractStringField(rawJson, L"clientType").value_or(L"windows-mfc");
         return message;
     }
