@@ -51,6 +51,8 @@ python3 --version
 
 ## 4. 拉取项目代码
 
+推荐放在当前用户目录下，权限最简单：
+
 ```bash
 mkdir -p ~/apps
 cd ~/apps
@@ -65,20 +67,68 @@ cd ~/apps/Stock2to3Selection
 git pull
 ```
 
-## 5. 创建虚拟环境并安装依赖
+如果你希望放在 `/opt/apps` 这类系统目录，先用 `sudo` 创建目录，再把项目目录所有权交给运行服务的用户。下面以登录用户 `admin` 为例：
 
 ```bash
-cd ~/apps/Stock2to3Selection
+sudo mkdir -p /opt/apps
+sudo chown -R admin:admin /opt/apps
+cd /opt/apps
+git clone https://github.com/zzy8226614/Stock2to3Selection.git
+cd /opt/apps/Stock2to3Selection
+sudo chown -R admin:admin /opt/apps/Stock2to3Selection
+```
+
+## 5. 创建虚拟环境并安装依赖
+
+不要使用 `sudo python3 -m venv .venv` 创建虚拟环境。否则 `.venv` 会归 `root` 所有，后续普通用户执行 `pip install` 会出现 `Permission denied: '.venv/bin/pip'`。
+
+```bash
+cd /opt/apps/Stock2to3Selection
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 pip install -r backend/requirements.txt
 ```
 
+如果你的项目实际放在 `~/apps/Stock2to3Selection`，把上面的 `cd /opt/apps/Stock2to3Selection` 换成自己的路径即可。
+
+如果之前已经误用 `sudo` 创建过 `.venv`，按下面方式重建：
+
+```bash
+cd /opt/apps/Stock2to3Selection
+deactivate 2>/dev/null || true
+sudo chown -R admin:admin /opt/apps/Stock2to3Selection
+rm -rf .venv
+hash -r
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -r backend/requirements.txt
+```
+
+如果删除 `.venv` 后仍显示 `(.venv)`，说明当前 shell 还停留在已经失效的虚拟环境里。先执行：
+
+```bash
+deactivate 2>/dev/null || true
+hash -r
+which python3
+python3 --version
+```
+
+确认 `python3` 指向 `/usr/bin/python3` 后，再重新执行 `python3 -m venv .venv`。
+
 国内网络慢时可以使用清华源：
 
 ```bash
 pip install -r backend/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+```
+
+如果 `python3 -m venv .venv` 提示缺少 venv 模块：
+
+```bash
+sudo apt update
+sudo apt install -y python3-venv
+python3 -m venv .venv
 ```
 
 ## 6. 临时启动验证
@@ -120,10 +170,10 @@ Description=Stock2to3Selection FastAPI Backend
 After=network.target
 
 [Service]
-User=ubuntu
-WorkingDirectory=/home/ubuntu/apps/Stock2to3Selection
-Environment="PATH=/home/ubuntu/apps/Stock2to3Selection/.venv/bin"
-ExecStart=/home/ubuntu/apps/Stock2to3Selection/.venv/bin/python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8080
+User=admin
+WorkingDirectory=/opt/apps/Stock2to3Selection
+Environment="PATH=/opt/apps/Stock2to3Selection/.venv/bin"
+ExecStart=/opt/apps/Stock2to3Selection/.venv/bin/python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8080
 Restart=always
 RestartSec=5
 TimeoutStopSec=20
@@ -134,7 +184,7 @@ LimitNOFILE=65535
 WantedBy=multi-user.target
 ```
 
-如果你的登录用户不是 `ubuntu`，把 `User`、`WorkingDirectory`、`PATH` 和 `ExecStart` 中的路径改成实际路径。
+如果你的登录用户不是 `admin`，或者项目不在 `/opt/apps/Stock2to3Selection`，把 `User`、`WorkingDirectory`、`PATH` 和 `ExecStart` 中的路径改成实际值。`User` 应该和 `.venv` 所属用户一致。
 
 启用服务：
 
@@ -199,6 +249,34 @@ curl "http://127.0.0.1:8080/debug/upstream-check?timeout_seconds=12"
 ```
 
 系统会优先使用 Akshare，必要时使用本地缓存和腾讯行情后备源。`runtime_env` 会清理失效的本机代理环境变量，避免服务因为错误代理无法访问上游。
+
+虚拟环境权限错误时，常见现象：
+
+```text
+ERROR: Could not install packages due to an OSError: [Errno 13] Permission denied: '.venv/bin/pip'
+```
+
+原因通常是用 `sudo python3 -m venv .venv` 创建了 root-owned 虚拟环境。修复方式是把项目目录所有权交给运行用户，并重新创建 `.venv`：
+
+```bash
+cd /opt/apps/Stock2to3Selection
+deactivate 2>/dev/null || true
+sudo chown -R admin:admin /opt/apps/Stock2to3Selection
+rm -rf .venv
+hash -r
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -r backend/requirements.txt
+```
+
+如果执行 `python3 -m venv .venv` 时提示：
+
+```text
+-bash: /opt/apps/Stock2to3Selection/.venv/bin/python3: No such file or directory
+```
+
+说明当前 shell 还在使用已经被删除的旧虚拟环境。执行 `deactivate` 或 `hash -r` 后再重建。
 
 服务反复重启时查看：
 
